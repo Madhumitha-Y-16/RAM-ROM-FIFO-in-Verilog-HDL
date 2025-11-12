@@ -72,7 +72,6 @@ endmodule
 Paste the output here
 *
 *
----
 ### 2. ROM Module
 ```
 // 4x8 ROM with Preloaded Data
@@ -104,7 +103,7 @@ module tb_rom_4x8;
 Paste the output here
 *
 *
----
+
 
 ### 3. FIFO Memory Module
 ```
@@ -167,4 +166,7 @@ endmodule
 Paste the output here
 *
 *
+### Result
 
+The RAM, ROM, and FIFO memory modules were successfully designed, simulated, and verified using Verilog HDL in Vivado Design Suite.
+All read and write operations performed as expected during simulation.
