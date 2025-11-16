@@ -29,80 +29,116 @@ FIFO is a sequential buffer that stores data such that the **first data written 
 
 ### **1. RAM Module**
 ```verilog
-// 4x8 RAM with Read and Write Operations
-module ram_4x8 (
-    input clk,
-    input we,
-    input [1:0] addr,
-    input [7:0] data_in,
-    output reg [7:0] data_out
-);
-    reg [7:0] memory [3:0];
+module ram_4kb (clk, we, addr, din, dout);
+    input clk;
+    input we;
+    input [11:0] addr;
+    input [7:0] din;
+    output reg [7:0] dout;
+    reg [7:0] mem [0:4095];
 
+    always @(posedge clk) begin
+        if (we)
+            mem[addr] <= din;
+        dout <= mem[addr];
+    end
 endmodule
 ```
 ### Testbench for RAM
 ```
-module tb_ram_4x8;
-    reg clk, we;
-    reg [1:0] addr;
-    reg [7:0] data_in;
-    wire [7:0] data_out;
+`timescale 1ns / 1ps
+module tb_ram_4kb;
+    reg clk;
+    reg we;
+    reg [11:0] addr;
+    reg [7:0] din;
+    wire [7:0] dout;
+    integer i;
 
-    ram_4x8 uut(clk, we, addr, data_in, data_out);
+    ram_4kb dut (clk, we, addr, din, dout);
 
+    initial clk = 0;
     always #5 clk = ~clk;
 
     initial begin
-        clk = 0; we = 0;
-        addr = 2'b00; data_in = 8'h00;
-        #10 we = 1; addr = 2'b00; data_in = 8'hA5; // Write A5 at addr 00
-        #10 addr = 2'b01; data_in = 8'h3C;         // Write 3C at addr 01
-        #10 we = 0; addr = 2'b00;                  // Read addr 00
-        #10 addr = 2'b01;                          // Read addr 01
-        #10 $finish;
+        we = 0;
+        addr = 0;
+        din = 0;
+        #10;
+
+        for (i = 0; i < 20; i = i + 1) begin
+            @(posedge clk);
+            addr = $random % 4096;
+            din  = $random % 256;
+            we   = 1;
+            @(posedge clk);
+            we   = 0;
+        end
+        $finish;
     end
 endmodule
 ```
 ### Simulation Output for RAM
-*
-*
-*
-*
-Paste the output here
-*
-*
+
+<img width="1920" height="1080" alt="Screenshot (64)" src="https://github.com/user-attachments/assets/56bd66c1-f311-4f8f-8bf1-9c2cdfb54cbb" />
+
 ### 2. ROM Module
 ```
 // 4x8 ROM with Preloaded Data
-module rom_4x8 (
-    input [1:0] addr,
-    output reg [7:0] data_out
+module rom (
+   input  wire [3:0] addr,   
+   output wire [7:0] data
 );
-    reg [7:0] memory [3:0];
-
-
-
+   reg [7:0] rom [0:15];
+   initial begin
+       rom[0]  = 8'h10;
+       rom[1]  = 8'h20;
+       rom[2]  = 8'h30;
+       rom[3]  = 8'h40;
+       rom[4]  = 8'h50;
+       rom[5]  = 8'h60;
+       rom[6]  = 8'h70;
+       rom[7]  = 8'h80;
+       rom[8]  = 8'h90;
+       rom[9]  = 8'hA0;
+       rom[10] = 8'hB0;
+       rom[11] = 8'hC0;
+       rom[12] = 8'hD0;
+       rom[13] = 8'hE0;
+       rom[14] = 8'hF0;
+       rom[15] = 8'hFF;
+   end
+   assign data = rom[addr];
 endmodule
 ```
 ### Testbench for ROM
 ```
-module tb_rom_4x8;
-    reg [1:0] addr;
-    wire [7:0] data_out;
+`timescale 1ns/1ps
+module tb_rom;
+   reg  [3:0] addr;
+   wire [7:0] data;
+   rom uut (
+       .addr(addr),
+       .data(data)
+   );
 
-    rom_4x8 uut(addr, data_out);
+   integer i;
 
-  
+   initial begin
+       for (i = 0; i < 16; i = i + 1) begin
+           addr = i;
+           #10;   
+           $display("ADDR = %0d  DATA = %h", addr, data);
+       end
+       $finish;
+   end
+
+endmodule  
 ```
 ### Simulation Output for ROM
-*
-*
-*
-*
-Paste the output here
-*
-*
+
+<img width="1920" height="1080" alt="Screenshot (122)" src="https://github.com/user-attachments/assets/49be19ed-3d8e-4382-b205-af090a1adb23" />
+
 
 
 ### 3. FIFO Memory Module
@@ -159,13 +195,9 @@ module tb_fifo_4x8;
 endmodule
 ```
 ### Simulation Output for FIFO
-*
-*
-*
-*
-Paste the output here
-*
-*
+
+<img width="1920" height="1080" alt="Screenshot (66)" src="https://github.com/user-attachments/assets/ed779d80-4ba5-45f7-94d2-a823924970ca" />
+
 ### Result
 
 The RAM, ROM, and FIFO memory modules were successfully designed, simulated, and verified using Verilog HDL in Vivado Design Suite.
